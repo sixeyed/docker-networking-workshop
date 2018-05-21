@@ -1,0 +1,7 @@
+# modified from:
+# https://docs.projectcalico.org/v3.1/getting-started/kubernetes/tutorials/stars-policy/manifests/00-namespace.yaml
+
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: stars

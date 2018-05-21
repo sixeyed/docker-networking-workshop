@@ -1,0 +1,19 @@
+# https://docs.projectcalico.org/v3.1/getting-started/kubernetes/tutorials/stars-policy/policies/backend-policy.yaml
+
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  namespace: stars
+  name: backend-policy
+spec:
+  podSelector:
+    matchLabels:
+      role: backend
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              role: frontend
+      ports:
+        - protocol: TCP
+          port: 6379

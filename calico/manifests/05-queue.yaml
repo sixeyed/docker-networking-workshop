@@ -1,0 +1,41 @@
+#https://docs.projectcalico.org/v3.1/getting-started/kubernetes/tutorials/stars-policy/manifests/02-backend.yaml
+
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: infrastructure
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: queue 
+  namespace: infrastructure
+spec:
+  ports:
+  - port: 5000
+    targetPort: 5000 
+  selector:
+    role: queue 
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: queue 
+  namespace: infrastructure
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        role: queue 
+    spec:
+      containers:
+      - name: queue 
+        image: calico/star-probe:v0.1.0
+        imagePullPolicy: Always
+        command:
+        - probe
+        - --http-port=5000
+        - --urls=http://frontend.stars:80/status,http://payments.pci:6380/status,http://backend.stars:6379/status,http://client.client:9000/status,http://queue.infrastructure:5000/status
+        ports:
+        - containerPort: 5000

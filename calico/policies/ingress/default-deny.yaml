@@ -1,0 +1,37 @@
+# https://docs.projectcalico.org/v3.1/getting-started/kubernetes/tutorials/stars-policy/policies/default-deny.yaml
+
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  namespace: client 
+  name: default-deny-client
+spec:
+  podSelector:
+    matchLabels: {}
+---
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  namespace: stars 
+  name: default-deny-stars
+spec:
+  podSelector:
+    matchLabels: {}
+---
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  namespace: pci 
+  name: default-deny-pci
+spec:
+  podSelector:
+    matchLabels: {}
+---
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  namespace: infrastructure 
+  name: default-deny-infrastructure
+spec:
+  podSelector:
+    matchLabels: {}
