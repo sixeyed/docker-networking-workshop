@@ -1,19 +1,19 @@
-# https://docs.projectcalico.org/v3.1/getting-started/kubernetes/tutorials/stars-policy/policies/frontend-policy.yaml
-
 kind: NetworkPolicy
 apiVersion: networking.k8s.io/v1
 metadata:
-  namespace: stars
-  name: frontend-policy
+  namespace: backend
+  name: facade-policy
 spec:
   podSelector:
     matchLabels:
-      role: frontend 
+      app: facade
+  policyTypes:
+  - Ingress
   ingress:
     - from:
         - namespaceSelector:
             matchLabels:
-              role: client
+              requires: backend
       ports:
         - protocol: TCP
           port: 80

@@ -1,10 +1,3 @@
-#https://docs.projectcalico.org/v3.1/getting-started/kubernetes/tutorials/stars-policy/manifests/02-backend.yaml
-
-kind: Namespace
-apiVersion: v1
-metadata:
-  name: pci
----
 apiVersion: v1
 kind: Service
 metadata:
@@ -15,27 +8,30 @@ spec:
   - port: 6380
     targetPort: 6380 
   selector:
-    role: payments 
+    app: payments 
 ---
-apiVersion: v1
-kind: ReplicationController
+apiVersion: apps/v1beta2
+kind: Deployment
 metadata:
   name: payments 
   namespace: pci
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: payments
   template:
     metadata:
       labels:
-        role: payments 
+        app: payments 
     spec:
       containers:
       - name: payments 
-        image: calico/star-probe:v0.1.0
+        image: dockersamples/star-probe
         imagePullPolicy: Always
         command:
         - probe
         - --http-port=6380
-        - --urls=http://frontend.stars:80/status,http://payments.pci:6380/status,http://backend.stars:6379/status,http://client.client:9000/status,http://queue.infrastructure:5000/status
+        - --urls=http://facade.backend:80/status,http://payments.pci:6380/status,http://backend.backend:6379/status,http://client.frontend:9000/status,http://queue.infrastructure:5000/status
         ports:
         - containerPort: 6380

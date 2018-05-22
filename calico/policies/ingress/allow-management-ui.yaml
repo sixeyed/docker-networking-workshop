@@ -1,13 +1,13 @@
-# https://docs.projectcalico.org/v3.1/getting-started/kubernetes/tutorials/stars-policy/policies/allow-ui.yaml
-
 kind: NetworkPolicy
 apiVersion: networking.k8s.io/v1
 metadata:
-  namespace: client
-  name: allow-ui-client
+  namespace: frontend
+  name: allow-ui-frontend
 spec:
   podSelector:
     matchLabels: {}
+  policyTypes:
+  - Ingress
   ingress:
     - from:
         - namespaceSelector:
@@ -17,11 +17,13 @@ spec:
 kind: NetworkPolicy
 apiVersion: networking.k8s.io/v1
 metadata:
-  namespace: stars
-  name: allow-ui-stars
+  namespace: backend
+  name: allow-ui-backend
 spec:
   podSelector:
     matchLabels: {}
+  policyTypes:
+  - Ingress
   ingress:
     - from:
         - namespaceSelector:
@@ -36,6 +38,8 @@ metadata:
 spec:
   podSelector:
     matchLabels: {}
+  policyTypes:
+  - Ingress
   ingress:
     - from:
         - namespaceSelector:
@@ -50,6 +54,8 @@ metadata:
 spec:
   podSelector:
     matchLabels: {}
+  policyTypes:
+  - Ingress
   ingress:
     - from:
         - namespaceSelector:

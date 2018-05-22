@@ -1,5 +1,3 @@
-# https://docs.projectcalico.org/v3.1/getting-started/kubernetes/tutorials/advanced-policy
-
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -9,3 +7,10 @@ spec:
   podSelector: {}
   policyTypes:
   - Egress
+  egress:
+  # allow DNS resolution
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP

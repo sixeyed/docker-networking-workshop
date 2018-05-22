@@ -1,0 +1,22 @@
+[
+    {
+        "id": "Cl",
+        "url": "http://client.frontend:9000/status"
+    },
+    {
+        "id": "Fa",
+        "url": "http://facade.backend:80/status"
+    },
+    {
+        "id": "Bk",
+        "url": "http://backend.backend:6379/status"
+    },
+    {
+        "id": "Q",
+        "url": "http://queue.infrastructure:5000/status"
+    },
+    {
+        "id": "Py",
+        "url": "http://payments.pci:6380/status"
+    }
+]
