@@ -459,7 +459,7 @@ tueyl7niinsb        ubuntu.3            sixeyed/ubuntu-with-utils:latest   worke
 ...
 ```
 
-The `ID` and `NODE` values might be different in your output. The important thing to note is that every node is running at least one replica, which means multiple containers across the swarm, all connected to the same overlay network.
+The `ID` and `NODE` values will be different in your output. The important thing to note is that every Linux node is running at least one replica, which means multiple containers across the swarm, all connected to the same overlay network.
 
 Now that all the nodes are running tasks on the "overnet" network, you will be able to see that network from every node. Connect to **worker2** and verify that by running `docker network ls` and filtering for overlay networks:
 
@@ -514,204 +514,147 @@ You should note that `docker network inspect` only shows containers/tasks runnin
 
 To complete this step you will need the IP address of the service task running on the worker that you saw in the previous step (in this example it was **10.0.0.11**).
 
-Execute the following commands from **worker3**, to verify that containers on this node can connect to containers on **worker2**.
+Execute the following commands from **worker3**, to verify that containers on this node can connect to containers running on **worker2**.
 
-
->> DONE TO HERE
-
+Store the ID of the service task container to a varable:
 
 ```
-$ docker network inspect overnet
-[
-    {
-        "Name": "overnet",
-        "Id": "wlqnvajmmzskn84bqbdi1ytuy",
-        "Created": "2017-04-04T09:35:47.362263887Z",
-        "Scope": "swarm",
-        "Driver": "overlay",
-        "EnableIPv6": false,
-        "IPAM": {
-            "Driver": "default",
-            "Options": null,
-            "Config": [
-                {
-                    "Subnet": "10.10.10.0/24",
-                    "Gateway": "10.10.10.1"
-                }
-            ]
-        },
-        "Internal": false,
-        "Attachable": false,
-        "Containers": {
-            "d676496d18f76c34d3b79fbf6573a5672a81d725d7c8704b49b4f797f6426454": {
-                "Name": "myservice.2.nlozn82wsttv75cs9vs3ju7vs",
-                "EndpointID": "36638a55fcf4ada2989650d0dde193bc2f81e0e9e3c153d3e9d1d85e89a642e6",
-                "MacAddress": "02:42:0a:00:00:04",
-                "IPv4Address": "10.10.10.4/24",
-                "IPv6Address": ""
-            }
-        },
-        "Options": {
-            "com.docker.network.driver.overlay.vxlanid_list": "4097"
-        },
-        "Labels": {},
-        "Peers": [
-            {
-                "Name": "node0-f6a6f8e18a9d",
-                "IP": "10.10.10.5"
-            },
-            {
-                "Name": "node1-507a763bed93",
-                "IP": "10.10.10.6"
-            }
-        ]
-    }
-]
+id=$(docker container ls --last 1 --format "{{ .ID }}")
 ```
 
-Notice that the IP address listed for the service task (container) running on **node0** is different to the IP address for the service task running on **node1**. Note also that they are one the sane "overnet" network.
-
-Run a `docker ps` command to get the ID of the service task on **node0** so that you can log in to it in the next step.
+And now confirm you can ping the container running on **worker3** from the container running on **worker2**:
 
 ```
-$ docker ps
-CONTAINER ID        IMAGE                                                                            COMMAND                  CREATED             STATUS              PORTS                           NAMES
-d676496d18f7        ubuntu@sha256:dd7808d8792c9841d0b460122f1acf0a2dd1f56404f8d1e56298048885e45535   "sleep infinity"         10 minutes ago      Up 10 minutes                                       myservice.2.nlozn82wsttv75cs9vs3ju7vs
-<Snip>
+$ docker container exec $id ping -c 2 10.0.0.11
+PING 10.0.0.11 (10.0.0.11) 56(84) bytes of data.
+64 bytes from 10.0.0.11: icmp_seq=1 ttl=64 time=0.163 ms
+64 bytes from 10.0.0.11: icmp_seq=2 ttl=64 time=0.174 ms
 ```
 
-Log on to the service task. Be sure to use the container `ID` from your environment as it will be different from the example shown below. We can do this by running `docker exec -it <CONTAINER ID> /bin/bash`.
-
-```
-$ docker exec -it d676496d18f7 /bin/bash
-root@d676496d18f7:/#
-```
-
-Install the ping command and ping the service task running on **node1** where it had a IP address of `10.10.10.3` from the `docker network inspect overnet` command.
-
-```
-root@d676496d18f7:/# apt-get update && apt-get install -y iputils-ping
-```
-
-Now, lets ping `10.10.10.3`.
-
-```
-root@d676496d18f7:/# ping -c5 10.10.10.3
-PING 10.10.10.3 (10.10.10.3) 56(84) bytes of data.
-^C
---- 10.10.10.3 ping statistics ---
-4 packets transmitted, 0 received, 100% packet loss, time 2998ms
-```
-
-The output above shows that both tasks from the **myservice** service are on the same overlay network spanning both nodes and that they can use this network to communicate.
+The output above shows that all the tasks from the **myservice** service are on the same overlay network spanning multiple nodes and that they can use this network to communicate.
 
 ## <a name="discover"></a>Step 5: Test service discovery
 
 Now that you have a working service using an overlay network, let's test service discovery.
 
-If you are not still inside of the container on **node0**, log back into it with the `docker exec -it <CONTAINER ID> /bin/bash` command.
-
-Run `cat /etc/resolv.conf` form inside of the container on **node0**.
+Still on **worker2**, use the container ID you have stored to see how DNS resolution is configured in containers. Run `cat /etc/resolv.conf`:
 
 ```
-$ docker exec -it d676496d18f7 /bin/bash
-root@d676496d18f7:/# cat /etc/resolv.conf
-search ivaf2i2atqouppoxund0tvddsa.jx.internal.cloudapp.net
+$ docker container exec $id cat /etc/resolv.conf
+search i4it0iff0fxurmesl4lntkyo2a.bx.internal.cloudapp.net
 nameserver 127.0.0.11
-options ndots:0
+options ndots:0 ndots:0
 ```
 
 The value that we are interested in is the `nameserver 127.0.0.11`. This value sends all DNS queries from the container to an embedded DNS resolver running inside the container listening on 127.0.0.11:53. All Docker container run an embedded DNS server at this address.
 
 > **NOTE:** Some of the other values in your file may be different to those shown in this guide.
 
-Try and ping the "myservice" name from within the container by running `ping -c5 myservice`.
+Try and ping the "myservice" name from within the container by running `ping -c2 ubuntu`.
 
 ```
-root@d676496d18f7:/# ping -c5 myservice
-PING myservice (10.10.10.2) 56(84) bytes of data.
-64 bytes from 10.10.10.2: icmp_seq=1 ttl=64 time=0.020 ms
-64 bytes from 10.10.10.2: icmp_seq=2 ttl=64 time=0.052 ms
-64 bytes from 10.10.10.2: icmp_seq=3 ttl=64 time=0.044 ms
-64 bytes from 10.10.10.2: icmp_seq=4 ttl=64 time=0.042 ms
-64 bytes from 10.10.10.2: icmp_seq=5 ttl=64 time=0.056 ms
-
---- myservice ping statistics ---
-5 packets transmitted, 5 received, 0% packet loss, time 4001ms
-rtt min/avg/max/mdev = 0.020/0.042/0.056/0.015 ms
+$ docker container exec $id ping -c 2 ubuntu
+PING ubuntu (10.0.0.2) 56(84) bytes of data.
+64 bytes from 10.0.0.2: icmp_seq=1 ttl=64 time=0.038 ms
+64 bytes from 10.0.0.2: icmp_seq=2 ttl=64 time=0.041 ms
+...
 ```
 
-The output clearly shows that the container can ping the `myservice` service by name. Notice that the IP address returned is `10.10.10.2`. In the next few steps we'll verify that this address is the virtual IP (VIP) assigned to the `myservice` service.
+The output clearly shows that the container can ping the `ubuntu` service by name. Notice that the IP address returned is `10.0.0.2`. In the next few steps we'll verify that this address is the virtual IP (VIP) assigned to the `ubuntu` service.
 
-Type the `exit` command to leave the `exec` container session and return to the shell prompt of your **node0** Docker host.
-
-```
-root@d676496d18f7:/# exit
-```
-
-Inspect the configuration of the "myservice" service by running `docker service inspect myservice`. Lets verify that the VIP value matches the value returned by the previous `ping -c5 myservice` command.
+Inspect the configuration of the service by running `docker service inspect ubuntu` on the manager node **manager1**. Lets verify that the VIP value matches the value returned by the previous `ping` command.
 
 ```
-$ docker service inspect myservice
+$ docker service inspect ubuntu
 [
     {
-        "ID": "ov30itv6t2n7axy2goqbfqt5e",
+        "ID": "sua78ut856kq2h1q0dq1lbxik",
         "Version": {
-            "Index": 19
+            "Index": 242
         },
-        "CreatedAt": "2017-04-04T09:35:47.009730798Z",
-        "UpdatedAt": "2017-04-04T09:35:47.05475096Z",
+        "CreatedAt": "2018-06-01T10:43:43.491494388Z",
+        "UpdatedAt": "2018-06-01T10:43:43.493785595Z",
         "Spec": {
-            "Name": "myservice",
+            "Name": "ubuntu",
+            "Labels": {},
             "TaskTemplate": {
                 "ContainerSpec": {
-                    "Image": "ubuntu:latest@sha256:dd7808d8792c9841d0b460122f1acf0a2dd1f56404f8d1e56298048885e45535",
+                    "Image": "sixeyed/ubuntu-with-utils:latest@sha256:d6d109a6bc6b610992a9923b6089400e5150bbdc10539d1c1a8f67381bd7f738",
                     "Args": [
                         "sleep",
                         "infinity"
                     ],
-<Snip>
+                    "StopGracePeriod": 10000000000,
+                    "DNSConfig": {}
+                },
+...
+            "EndpointSpec": {
+                "Mode": "vip"
+            }
+        },
         "Endpoint": {
             "Spec": {
                 "Mode": "vip"
             },
             "VirtualIPs": [
                 {
-                    "NetworkID": "wlqnvajmmzskn84bqbdi1ytuy",
-                    "Addr": "10.10.10.2/24"
+                    "NetworkID": "ke2flaxd3nby3zm0bs0fc4dng",
+                    "Addr": "10.0.0.2/24"
                 }
             ]
-        },
-<Snip>
+        }
+    }
+]
 ```
 
-Towards the bottom of the output you will see the VIP of the service listed. The VIP in the output above is `10.10.10.2` but the value may be different in your setup. The important point to note is that the VIP listed here matches the value returned by the `ping -c5 myservice` command.
+Towards the bottom of the output you will see the VIP of the service listed. The VIP in the output above is `10.0.0.2` but the value may be different in your setup. The important point to note is that the VIP listed here matches the value returned by the `ping` command.
 
-Feel free to create a new `docker exec` session to the service task (container) running on **node1** and perform the same `ping -c5 service` command. You will get a response form the same VIP.
+Now that you're connected to **manager1** you can repeate the same `ping` command using the container running on the manager - you will get a response form the same VIP:
+
+```
+$ id=$(docker container ls --last 1 --format "{{ .ID }}")
+
+$ docker container exec $id ping -c 2 ubuntu
+PING ubuntu (10.0.0.2) 56(84) bytes of data.
+64 bytes from 10.0.0.2: icmp_seq=1 ttl=64 time=0.046 ms
+64 bytes from 10.0.0.2: icmp_seq=2 ttl=64 time=0.043 ms
+...
+```
 
 ## <a name="routingmesh"></a>Step 6: Test Routing Mesh
 
 Now let's create a service that utilizes Routing Mesh and the ingress network. Here you'll be creating a single task service that exposes port 5000 on the ingress network.
 
+Create the service with a single replica, using the **manager1** node:
+
 ```
 docker service create -p 5000:5000 --name pets --replicas=1 nicolaka/pets_web:1.0
 ```
 
-Check which nodes did the task run.
+Browse to UCP and using the left navigation click on _Swarm...Services_. You'll see the **pets** service in the list - click on the service and in the details panel on the right you can see a link to the published endpoint:
 
-```
-ubuntu@node-0:~$ docker service ps pets
-ID            NAME    IMAGE                  NODE    DESIRED STATE  CURRENT STATE          ERROR  PORTS
-sqaa61qcepuh  pets.1  nicolaka/pets_web:1.0  node-0  Running        Running 4 minutes ago
-```
+[](img)
 
-You can see that the task is running on `node-0`, it could be `node-1` in your case. Regardless which node the task is running on, routing mesh make sure that you can connect to port `5000` on all cluster nodes and it will take care of forwarding the traffic to a healthy task. 
+Click the link and the app will open in a new browser tab:
 
-Using your browser, go to the node where the task is NOT running on ( e.g `52.23.23.1:5000` where `52.23.23.1` is the IP of the node that the task is NOT running on).
+[](img)
 
-You still can see the app right? That's the power of Routing Mesh!
+> The domain name you're browsing to is the UCP manager node. The ingress network receives the request and routes it to one of the service tasks - any node in the cluster can respond to the request by internally routing it to a container.
 
+Try scaling up the service. In UCP select the **pets** service and click _Configure_:
 
-## Wrap Up
+[](im)
 
-Thank you for taking the time to complete this lab! Feel free to try any of the other labs.
+Select the _Scheduling_ section, and run more tasks by setting the _Scale_ level to 10:
+
+[](img)
+
+Click save and UCP returns to the service list. The service is scaling up and you can see the container list by clicking on _Inspect Resource...Containers_:
+
+[]()
+
+You'll see containers running on nodes across the cluster. Now refresh the tab with the Pets website. Each time you refresh you'll see a different container ID. Docker swarm load-balances requests across the service, 
+
+## Up Next
+
+Next we'll move onto [networking in Kubernetes](kube.md). You'll learn how to use Kubernetes in Docker EE to enforce network policies, and restrict which containers can access other containers.

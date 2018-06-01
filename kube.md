@@ -1,14 +1,12 @@
 # Kubernetes Networking in Docker EE
 
-Docker EE uses [Calico]() for the networking stack. Calico is the de-facto choice for enterprise Kubernetes workloads - it powers Kube deployments on all the major clouds, is proven to scale to thousands of nodes, and provides near bare-metal networking performance with minimal CPU overhead.
+Docker EE supports Kubernetes and Docker Swarm running on the same cluster. Networking in Kubernetes has similar features to Docker Swarm - containers in pods an reach each other by DNS name, and Kubernetes can load-balance incoming requests across pods.
 
-## Service Discovery in Kubernetes
-
-==TODO - namespaces and FQDNs==
+Kubernetes has one useful networking feature which Docker Swarm does not have - networking policies. Policies let you restrict traffic between containers in a way which is transparent to the application inside the container. In this section you'll learn how to use networking policies.
 
 ## Controlling Network access
 
-Calico implements Kubernete's [NetworkPolicy]() resources, allowing you to configure `ingress` and `egress` rules for pod traffic:
+Docker EE uses [Calico]() for networking in Kubernetes - it's all configured for you when you deploy a Docker EE cluster. Calico implements Kubernete's [NetworkPolicy]() resources, allowing you to configure `ingress` and `egress` rules for pod traffic:
 
 - `ingress` policies define which network sources are allowed to send traffic into a pod. These are useful for restricting service access to specific consumers;
 - `egress` policies define which network targets a pod is allowed to send traffic to. These are useful for isolating services so they can only connect to specific components, and for blocking traffic leaving the cluster to external Internet addresses.
@@ -27,12 +25,12 @@ Version 2 of the app introduces a payment service. The service isn't directly ac
 
 ## Deploy the Demo App
 
-Start by cloning the GitHub repo for the demo app, and navigate to the `calico` directory:
+You can use `kubectl` to manage Kubernetes on Docker EE, as well as using UCP. Start by cloning the GitHub repo for the demo app - connect to the **manager1** node, clone the repo and navigate to the `kubernetes` directory:
 
 ```
 git clone https://github.com/sixeyed/docker-networking-workshop.git
 
-cd ./docker-networking-workshop/calico
+cd ./docker-networking-workshop/kubernetes
 ```
 
 Now deploy version 1 of the application:
