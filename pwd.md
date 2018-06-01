@@ -53,7 +53,9 @@ You'll see the UCP homepage where you can navigate around the cluster. Now switc
 
 ## <a name="3"></a> 4 - Manage Kubernetes on Docker EE from Docker for Mac and Docker for Windows
 
-You can remotely manage your Docker EE cluster by downloading a client bundle from UCP. Communication between your client and UCP is secured with mutual TLS, and the client bundle contains certificates and setup scripts. Your client certificate identifies your account and enforces access control with the same permissions as in the UI.
+You can remotely manage your Docker EE cluster by downloading a client bundle from UCP. 
+
+Communication between your client and UCP is secured with mutual TLS, and the client bundle contains certificates and setup scripts. Your client certificate identifies your account and enforces access control with the same permissions as in the UI.
 
 In UCP click your username in the left nav and select _My Profile_:
 
@@ -96,6 +98,8 @@ Run the environment script, and your local CLI is now connected to the remote UC
 eval "$(<env.sh)"
 ```
 
+> If you're using Docker for Windows, you can do this in a PowerShell session, running `. ./env.ps1`
+
 You can run all the usual Kubernetes commands to work with resources in UCP:
 
 ```
@@ -108,13 +112,6 @@ java-app     1         1         1            1           26m
 
 And you can use `docker stack deploy` to deploy and upgrade applications on the Docker EE cluster.
 
+## Up Next
 
-## Install Tools
-
-PWD is a minimal environment, so we will need to add a few tools to help with the workshop. On the **manager1** node run:
-
-```
-sudo apt-get update && apt-get install -y curl dnsutils iputils-ping
-```
-
-And run the same command on **worker1**.
+Now you're ready to move onto [networking in Docker swarm](swarm.md). You'll learn how networking works in Docker containers and in Docker swarm mode.

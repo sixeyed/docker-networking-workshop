@@ -1,8 +1,6 @@
-# Docker Networking Workshop
+# Swarm Mode Networking in Docker EE
 
-Hi, welcome to the Docker Networking Workshop!
-
-You will get your hands dirty by going through examples of a few basic networking concepts, learn about Bridge and Overlay networking, and finally learning about the Swarm Routing Mesh.
+Docker Enterprise Edition supports swarm mode. In this section you'll work through examples of a few basic networking concepts, learn about Bridge and Overlay networking, and finally learning about the Swarm Routing Mesh.
 
 > **Difficulty**: Beginner to Intermediate
 
@@ -13,6 +11,21 @@ You will get your hands dirty by going through examples of a few basic networkin
 > * [Section #1 - Networking Basics](#task1)
 > * [Section #2 - Bridge Networking](#task2)
 > * [Section #3 - Overlay Networking](#task3)
+
+
+# Before You Start - Install Some Tools
+
+PWD is a minimal environment, so we will need to add a few tools to help with the workshop. On the **manager1** node run:
+
+```
+sudo apt-get update && apt-get install -y curl dnsutils iputils-ping
+```
+
+And run the same command on **worker1**:
+
+```
+sudo apt-get update && apt-get install -y curl dnsutils iputils-ping
+```
 
 # <a name="task1"></a>Section #1 - Networking Basics
 
@@ -137,11 +150,11 @@ Plugins:
 ...
 ```
 
-The output above shows the **bridge**, **host**, **ipvlan**, **macvlan**, **null**, and **overlay** drivers are installed.
+The output above shows the **bridge**, **host**, **ipvlan**, **macvlan**, **null**, and **overlay** drivers are installed. In this workshop you'll learn about the bridge and overlay networks.
 
 # <a name="task2"></a>Section #2 - Bridge Networking
 
-==TODO - intro==
+[Bridge networks](https://docs.docker.com/network/bridge/) are used for connecting Docker containers running on a single server. Containers connected to the same bridge network can reach each other, and they can also reach external resources that the server can access.
 
 ## <a name="connect-container"></a>Step 1: The Basics
 
@@ -314,8 +327,6 @@ docker rm -f c2
 ```
 
 ## <a name="nat"></a>Step 4: Configure NAT for external connectivity
-
-==TODO - intro==
 
 In this step we'll start a new **NGINX** container and map port 8000 on the Docker host to port 80 inside of the container. This means that traffic that hits the Docker host on port 8000 will be passed on to port 80 inside the container.
 
@@ -633,27 +644,27 @@ docker service create -p 5000:5000 --name pets --replicas=1 nicolaka/pets_web:1.
 
 Browse to UCP and using the left navigation click on _Swarm...Services_. You'll see the **pets** service in the list - click on the service and in the details panel on the right you can see a link to the published endpoint:
 
-[](img)
+[](img/swarm/pets-service-link.jpg)
 
 Click the link and the app will open in a new browser tab:
 
-[](img)
+[](img/swarm/pets-1.jpg)
 
 > The domain name you're browsing to is the UCP manager node. The ingress network receives the request and routes it to one of the service tasks - any node in the cluster can respond to the request by internally routing it to a container.
 
 Try scaling up the service. In UCP select the **pets** service and click _Configure_:
 
-[](im)
+[](img/swarm/pets-configure.jpg)
 
 Select the _Scheduling_ section, and run more tasks by setting the _Scale_ level to 10:
 
-[](img)
+[](img/swarm/pets-scale.jpg)
 
 Click save and UCP returns to the service list. The service is scaling up and you can see the container list by clicking on _Inspect Resource...Containers_:
 
-[]()
+[](img/swarm/pets-container-list.jpg)
 
-You'll see containers running on nodes across the cluster. Now refresh the tab with the Pets website. Each time you refresh you'll see a different container ID. Docker swarm load-balances requests across the service, 
+You'll see containers running on nodes across the cluster. Now refresh the tab with the Pets website. Each time you refresh you'll see a different container ID. Docker swarm load-balances requests across all the tasks in the service.
 
 ## Up Next
 

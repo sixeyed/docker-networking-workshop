@@ -1,7 +1,6 @@
-
 # Docker Networking Workshop
 
-==TODO - intro==
+Welcome to the Docker networking workshop! In this session you'll learn about networking in Docker swarm mode and in Kubernetes, using a single Docker Enterprise Edition cluster.
 
 ## Contents
 
@@ -11,7 +10,7 @@ The lab is scheduled for 2 hours. You'll start by getting to know the lab enviro
 
 * [Understand swarm mode networking in Docker EE](/swarm.md)
 
-* [Understand Kubernetes networking, powered by Calico in Docker EE](/kube.md)
+* [Understand Kubernetes networking in Docker EE](/kube.md)
 
 
 ### Credits
