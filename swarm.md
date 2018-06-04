@@ -167,7 +167,7 @@ bf49ba724655        bridge              bridge              local
 f88f42dbcd4c        docker_gwbridge     bridge              local
 ```
 
-The output above shows two networks associated with the *bridge* driver: 
+The output above shows two networks associated with the *bridge* driver:
 
 * **bridge** is a default network created when you install Docker, even in a single-node installation
 
@@ -197,7 +197,7 @@ Now create a container called `c1` and attach it to your new `br` network on **m
 docker container run -itd --net br --name c1 alpine sh
 ```
 
-This command will create a new container based on the `alpine:latest` image. 
+This command will create a new container based on the `alpine:latest` image.
 
 Running `docker network inspect br` will show the containers on that network.
 
@@ -246,7 +246,7 @@ PING 172.20.0.2 (172.20.0.2) 56(84) bytes of data.
 ...
 ```
 
-The replies above show that the Docker host can ping the container over the **bridge** network. But, we can also verify the container can connect to the outside world too. 
+The replies above show that the Docker host can ping the container over the **bridge** network. But, we can also verify the container can connect to the outside world too.
 
 Enter in to the **c1** container that you created using the command `docker container exec`. We will pass the `sh` command to `container exec` which puts us in to an interactive shell inside the container.
 
@@ -440,10 +440,10 @@ $ docker network inspect overnet
 
 Now that we have an overlay network in our Docker EE cluster, it's time to create a service that uses the network.
 
-Execute the following command from **manager1** to create a new service called *myservice* on the *overnet* network with two tasks/replicas.
+Execute the following command from **manager1** to create a new service called *ubuntu* on the *overnet* network with two tasks/replicas.
 
 ```
-docker service create --name ubuntu \
+docker service create --name ubuntu --detach \
 --network overnet \
 --replicas 6 \
 sixeyed/ubuntu-with-utils sleep infinity
@@ -639,7 +639,7 @@ Now let's create a service that utilizes Routing Mesh and the ingress network. H
 Create the service with a single replica, using the **manager1** node:
 
 ```
-docker service create -p 5000:5000 --name pets --replicas=1 nicolaka/pets_web:1.0
+docker service create -p 5000:5000 -d --name pets --replicas=1 nicolaka/pets_web:1.0
 ```
 
 Browse to UCP and using the left navigation click on _Swarm...Services_. You'll see the **pets** service in the list - click on the service and in the details panel on the right you can see a link to the published endpoint:
@@ -665,6 +665,14 @@ Click save and UCP returns to the service list. The service is scaling up and yo
 [](img/swarm/pets-container-list.jpg)
 
 You'll see containers running on nodes across the cluster. Now refresh the tab with the Pets website. Each time you refresh you'll see a different container ID. Docker swarm load-balances requests across all the tasks in the service.
+
+## Clean up
+
+```
+docker service rm pets
+docker service rm ubuntu
+docker network rm overnet
+```
 
 ## Up Next
 
