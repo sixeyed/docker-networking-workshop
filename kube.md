@@ -25,18 +25,18 @@ Version 2 of the app introduces a payment service. The service isn't directly ac
 
 ## Deploy the Demo App
 
-You can use `kubectl` to manage Kubernetes on Docker EE, as well as using UCP. Start by cloning the GitHub repo for the demo app - connect to the **manager1** node, and setup kubectl to use the client bundle to authenticate with UCP.
+You can use `kubectl` to manage Kubernetes on Docker EE, as well as using UCP. Start by setting up kubectl to use the client bundle to aunthenticate to our Kubernetes master node on **manager1**.
 
 ```
- password='<password credential>'
- controller='<ucp hostname>'
+ password='typeInPasswordHere'
+ controller="$(curl -sS https://${PWD_HOST_FQDN}/sessions/${SESSION_ID} | jq -r '.instances[] | select(.hostname == "manager1") | .proxy_host').direct.${PWD_HOST_FQDN}"
  AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"'$password'"}' https://$controller/auth/login | jq -r .auth_token)
 curl -sk -H "Authorization: Bearer $AUTHTOKEN" https://$controller/api/clientbundle -o bundle.zip
 unzip bundle.zip
-eval "$(<env.sh)"
+source env.sh
 ```
 
-Next clone the repo and navigate to the `kubernetes` directory:
+Next clone the `docker-networking-workshop` repo and navigate to the `kubernetes` directory on the **manager1** node:
 
 ```
 git clone https://github.com/sixeyed/docker-networking-workshop.git
@@ -137,7 +137,7 @@ We want some extra security around the payments service, because it needs PCI co
 Apply that policy and you'll see the management UI doesn't change, because the payments service is already isolated by ingress rules:
 
 ```
-kubectl apply -f .\policies\egress\pci-policy.yaml
+kubectl apply -f ./policies/egress/pci-policy.yaml
 ```
 
 > You typically need to allow egress traffic on port 53 for DNS - without that, pods cannot resolve DNS names to enforce other policies.
@@ -152,7 +152,7 @@ Now you can add an ingress policy which explicitly allows traffic to the queue. 
 Both the `pci` and `backend` namespaces specify that label, so when you deploy the policy it will allow apps to publish messages to the queue:
 
 ```
-kubectl apply -f .\policies\ingress\queue-policy.yaml
+kubectl apply -f ./policies/ingress/queue-policy.yaml
 ```
 This works for the `backend` and `facade` services, which can now publish messages. The `payments` service still can't send traffic - the ingress rule for the target destination allows it, but the egress rule from the source blocks it:
 
@@ -168,7 +168,7 @@ The final step is to allow egress from the `payments` service to the queue. [pay
 Deploy the final policy to complete configuration of the app:
 
 ```
-kubectl apply -f .\policies\egress\payments-policy.yaml
+kubectl apply -f ./policies/egress/payments-policy.yaml
 ```
 
 Now all the traffic is flowing as required, controlled by network policies:
