@@ -59,7 +59,7 @@ This isn't good. The frontend is communicating directly with the backend, as wel
 
 To start with you'll deploy a blanket ingress policy which restricts all traffic to all pods. When this is enforced, pods will only be able to communicate if they have an ingress policy which specifies explicit access, overriding the default policy.
 
-Deny all ingress for app namespaces by deploying [default-deny.yaml](kubernetes/policies/ingress/default-demy.yaml), which sets up a network policy in each namespace with these rules:
+Deny all ingress for app namespaces by deploying [default-deny.yaml](kubernetes/policies/ingress/default-deny.yaml), which sets up a network policy in each namespace with these rules:
 
 - for any pod in the namspace
 - restrict ingress traffic to an empty list - i.e. allow no ingress traffic
