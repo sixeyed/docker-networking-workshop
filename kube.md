@@ -25,11 +25,21 @@ Version 2 of the app introduces a payment service. The service isn't directly ac
 
 ## Deploy the Demo App
 
-You can use `kubectl` to manage Kubernetes on Docker EE, as well as using UCP. Start by cloning the GitHub repo for the demo app - connect to the **manager1** node, clone the repo and navigate to the `kubernetes` directory:
+You can use `kubectl` to manage Kubernetes on Docker EE, as well as using UCP. Start by cloning the GitHub repo for the demo app - connect to the **manager1** node, and setup kubectl to use the client bundle to authenticate with UCP.
+
+```
+password='<password credential>'
+controller='<ucp hostname>'
+AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"'$password'"}' https://$controller/auth/login | jq -r .auth_token)
+curl -sk -H "Authorization: Bearer $AUTHTOKEN" https://$controller/api/clientbundle -o bundle.zip
+unzip bundle.zip
+eval "$(<env.sh)"
+```
+
+Next clone the repo and navigate to the `kubernetes` directory:
 
 ```
 git clone https://github.com/sixeyed/docker-networking-workshop.git
-
 cd ./docker-networking-workshop/kubernetes
 ```
 
@@ -165,7 +175,7 @@ Now all the traffic is flowing as required, controlled by network policies:
 
 ![](img/calico-fully-configured.jpg)
 
-The default ingress rules prevent the application services receiving traffic from any new services without being explicitly allowed. 
+The default ingress rules prevent the application services receiving traffic from any new services without being explicitly allowed.
 
 The default egress rule prevents any app which requires PCI compliance from sending traffic to any destination except infrastructure pods.
 
