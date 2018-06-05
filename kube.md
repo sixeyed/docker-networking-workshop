@@ -189,3 +189,7 @@ kubectl delete ns backend
 kubectl delete ns pci
 kubectl delete ns infrastructure
 ```
+
+## Thank you
+
+We hope you enjoyed both the Swarm and Kubernetes networking labs with Docker EE. If you have any enhancements to the workshop please file an issue or initiate a pull request and we'll take a look! Enjoy the rest of DockerCon 2018! 
