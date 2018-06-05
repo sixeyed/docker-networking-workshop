@@ -542,7 +542,7 @@ PING 10.0.0.11 (10.0.0.11) 56(84) bytes of data.
 64 bytes from 10.0.0.11: icmp_seq=2 ttl=64 time=0.174 ms
 ```
 
-The output above shows that all the tasks from the **myservice** service are on the same overlay network spanning multiple nodes and that they can use this network to communicate.
+The output above shows that all the tasks from the **ubuntu** service are on the same overlay network spanning multiple nodes and that they can use this network to communicate.
 
 ## <a name="discover"></a>Step 5: Test service discovery
 
@@ -561,7 +561,7 @@ The value that we are interested in is the `nameserver 127.0.0.11`. This value s
 
 > **NOTE:** Some of the other values in your file may be different to those shown in this guide.
 
-Try and ping the "myservice" name from within the container by running `ping -c2 ubuntu`.
+Try and ping the "ubuntu" name from within the container by running `ping -c2 ubuntu`.
 
 ```
 $ docker container exec $id ping -c 2 ubuntu

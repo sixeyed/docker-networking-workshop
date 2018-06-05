@@ -8,7 +8,7 @@ The lab is scheduled for 2 hours. You'll start by getting to know the lab enviro
 
 * [Learn to use the Play with Docker lab environment](/pwd.md)
 
-* [Understand swarm mode networking in Docker EE](/swarm.md)
+* [Understand Swarm mode networking in Docker EE](/swarm.md)
 
 * [Understand Kubernetes networking in Docker EE](/kube.md)
 
