@@ -6,7 +6,7 @@ Kubernetes has one useful networking feature which Docker Swarm does not have - 
 
 ## Controlling Network access
 
-Docker EE uses [Calico]() for networking in Kubernetes - it's all configured for you when you deploy a Docker EE cluster. Calico implements Kubernete's [NetworkPolicy]() resources, allowing you to configure `ingress` and `egress` rules for pod traffic:
+Docker EE uses [Calico](https://www.projectcalico.org/) for networking in Kubernetes - it's all configured for you when you deploy a Docker EE cluster. Calico implements Kubernete's [NetworkPolicy](https://kubernetes.io/docs/concepts/services-networking/network-policies/) resources, allowing you to configure `ingress` and `egress` rules for pod traffic:
 
 - `ingress` policies define which network sources are allowed to send traffic into a pod. These are useful for restricting service access to specific consumers;
 - `egress` policies define which network targets a pod is allowed to send traffic to. These are useful for isolating services so they can only connect to specific components, and for blocking traffic leaving the cluster to external Internet addresses.
@@ -28,9 +28,9 @@ Version 2 of the app introduces a payment service. The service isn't directly ac
 You can use `kubectl` to manage Kubernetes on Docker EE, as well as using UCP. Start by cloning the GitHub repo for the demo app - connect to the **manager1** node, and setup kubectl to use the client bundle to authenticate with UCP.
 
 ```
-password='<password credential>'
-controller='<ucp hostname>'
-AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"'$password'"}' https://$controller/auth/login | jq -r .auth_token)
+ password='<password credential>'
+ controller='<ucp hostname>'
+ AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"'$password'"}' https://$controller/auth/login | jq -r .auth_token)
 curl -sk -H "Authorization: Bearer $AUTHTOKEN" https://$controller/api/clientbundle -o bundle.zip
 unzip bundle.zip
 eval "$(<env.sh)"
@@ -59,7 +59,7 @@ This isn't good. The frontend is communicating directly with the backend, as wel
 
 To start with you'll deploy a blanket ingress policy which restricts all traffic to all pods. When this is enforced, pods will only be able to communicate if they have an ingress policy which specifies explicit access, overriding the default policy.
 
-Deny all ingress for app namespaces by deploying [default-deny.yaml](), which sets up a network policy in each namespace with these rules:
+Deny all ingress for app namespaces by deploying [default-deny.yaml](kubernetes/policies/ingress/default-demy.yaml), which sets up a network policy in each namespace with these rules:
 
 - for any pod in the namspace
 - restrict ingress traffic to an empty list - i.e. allow no ingress traffic
@@ -70,7 +70,7 @@ kubectl apply -f ./policies/ingress/default-deny.yaml
 
 > Refresh your management UI and after a few seconds you'll see a blank screen. The UI component can't even access the application pods to see where traffic is flowing!
 
-The first thing is to allow ingress traffic from the management UI, so you can see what's happening. [allow-management-ui.yaml]() sets up a policy in each namespace with these rules:
+The first thing is to allow ingress traffic from the management UI, so you can see what's happening. [allow-management-ui.yaml](kubernetes/policies/ingress/allow-management-ui.yaml) sets up a policy in each namespace with these rules:
 
 - for any pod in the namspace
 - allow ingress traffic from any pod in a namespace which matches the label `role=management-ui`
@@ -87,7 +87,7 @@ Now in the management UI you can see all the app components, but they're still i
 
 ![](img/calico-stars-ui-policy.jpg)
 
-We'll set up the correct access by applying new ingress rules, specifying where we want traffic to go. [backend-policy.yaml]() has rules to allow the facade to access the backend:
+We'll set up the correct access by applying new ingress rules, specifying where we want traffic to go. [backend-policy.yaml](kubernetes/policies/ingress/backend-policy.yaml) has rules to allow the facade to access the backend:
 
 - in the namespace `backend`
 - for any pods matching the label `app=backend`
@@ -100,7 +100,7 @@ Refresh the management UI and you'll see traffic is no flowing from the facade t
 
 ![](img/calico-stars-backend-policy.jpg)
 
-Next [facade-policy.yaml]() allows the client to access the facade:
+Next [facade-policy.yaml](kubernetes/policies/ingress/facade-policy.yaml) allows the client to access the facade:
 
 ```
 kubectl apply -f ./policies/ingress/facade-policy.yaml
@@ -128,7 +128,7 @@ The queue and payments service are isolated because of the default ingress polic
 
 We want some extra security around the payments service, because it needs PCI compliance. You can add a default egress policy which denies any non-whitelisted traffic.
 
-[pci-policy.yaml]() enforces these rules:
+[pci-policy.yaml](kubernetes/policies/egress/pci-policy.yaml) enforces these rules:
 
 - for any pods in the `pci` namespace
 - block all `egress` traffic to any destination
@@ -142,7 +142,7 @@ kubectl apply -f .\policies\egress\pci-policy.yaml
 
 > You typically need to allow egress traffic on port 53 for DNS - without that, pods cannot resolve DNS names to enforce other policies.
 
-Now you can add an ingress policy which explicitly allows traffic to the queue. [queue-policy.yaml]() does this:
+Now you can add an ingress policy which explicitly allows traffic to the queue. [queue-policy.yaml](kubernetes/policies/ingress/queue-policy.yaml) does this:
 
 - in the namespace `infrastructure`
 - for pods matching the label `app=queue`
@@ -158,7 +158,7 @@ This works for the `backend` and `facade` services, which can now publish messag
 
 ![](img/calico-payments-blocked.jpg)
 
-The final step is to allow egress from the `payments` service to the queue. [payments-policy.yaml]() allows this:
+The final step is to allow egress from the `payments` service to the queue. [payments-policy.yaml](kubernetes/policies/egress/payments-policy.yaml) allows this:
 
 - in the `pci` namespace
 - for pods matching the label `app=payments`
