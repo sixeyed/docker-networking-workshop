@@ -668,6 +668,8 @@ You'll see containers running on nodes across the cluster. Now refresh the tab w
 
 ## Clean up
 
+Delete swarm mode services created above:
+
 ```
 docker service rm pets
 docker service rm ubuntu
