@@ -34,7 +34,7 @@ Start by connecting to `worker3` and cloning the source for this workshop:
 ```
 mkdir scm && cd scm
 
-https://github.com/sixeyed/docker-networking-workshop.git
+git clone https://github.com/sixeyed/docker-networking-workshop.git
 
 cd docker-networking-workshop
 ```
